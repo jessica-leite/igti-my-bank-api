@@ -39,7 +39,21 @@ app.patch('/deposit', async (req, res) => {
     } catch (err) {
         res.status(400).send({ error: err.message });
     }
-})
+});
+
+app.patch('/withdraw', async (req, res) => {
+    try {
+        const withdraw = req.body;
+        const data = JSON.parse(await readFile(global.fileName, 'utf8'));
+        let accountIndex = data.accounts.findIndex(account => account.id === withdraw.accountId);
+        data.accounts[accountIndex].balance -= withdraw.value;
+        await writeFile(global.fileName, JSON.stringify(data));
+    
+        res.end();
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    }
+});
 
 app.listen(3000, async () => {
     try {
