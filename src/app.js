@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
-app.get('/balance/:id', async (req, res) => {
+app.get('/:id', async (req, res) => {
     try {
         const data = JSON.parse(await readFile(global.fileName, 'utf8'));
         const account = data.accounts.find(account => account.id === parseInt(req.params.id, 10));
@@ -27,7 +27,7 @@ app.get('/balance/:id', async (req, res) => {
     }
 })
 
-app.post('/account', async (req, res) => {
+app.post('/', async (req, res) => {
     try {
         let account = req.body;
         const data = JSON.parse(await readFile(global.fileName, 'utf8'));
@@ -84,7 +84,7 @@ app.delete('/:id', async (req, res) => {
         await writeFile(global.fileName, JSON.stringify(data));
 
         res.end();
-        
+
     } catch (err) {
         res.status(400).send({ error: err.message });
     }
