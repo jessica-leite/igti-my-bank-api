@@ -13,6 +13,20 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
+app.get('/balance/:id', async (req, res) => {
+    try {
+        const data = JSON.parse(await readFile(global.fileName, 'utf8'));
+        const account = data.accounts.find(account => account.id === parseInt(req.params.id, 10));
+        if (account) {
+            res.send(`balance: ${account.balance}`);
+        } else {
+            res.status(400).send({ error: 'Not found' });
+        }
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    }
+})
+
 app.post('/account', async (req, res) => {
     try {
         let account = req.body;
@@ -46,18 +60,31 @@ app.patch('/withdraw', async (req, res) => {
         const withdraw = req.body;
         const data = JSON.parse(await readFile(global.fileName, 'utf8'));
         let accountIndex = data.accounts.findIndex(account => account.id === withdraw.accountId);
-        
+
         let balance = data.accounts[accountIndex].balance;
         if (balance > withdraw.value) {
             balance -= withdraw.value;
         } else {
-            res.status(400).send({ error: 'Insufficient funds'})
+            res.status(400).send({ error: 'Insufficient funds' })
         }
 
         data.accounts[accountIndex].balance = balance;
         await writeFile(global.fileName, JSON.stringify(data));
 
         res.end();
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    }
+});
+
+app.delete('/:id', async (req, res) => {
+    try {
+        const data = JSON.parse(await readFile(global.fileName, 'utf8'));
+        data.accounts = data.accounts.filter(account => account.id !== parseInt(req.params.id, 10));
+        await writeFile(global.fileName, JSON.stringify(data));
+
+        res.end();
+        
     } catch (err) {
         res.status(400).send({ error: err.message });
     }
