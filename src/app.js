@@ -34,7 +34,7 @@ app.patch('/deposit', async (req, res) => {
         let accountIndex = data.accounts.findIndex(account => account.id === deposit.accountId);
         data.accounts[accountIndex].balance += deposit.value;
         await writeFile(global.fileName, JSON.stringify(data));
-    
+
         res.end();
     } catch (err) {
         res.status(400).send({ error: err.message });
@@ -46,9 +46,17 @@ app.patch('/withdraw', async (req, res) => {
         const withdraw = req.body;
         const data = JSON.parse(await readFile(global.fileName, 'utf8'));
         let accountIndex = data.accounts.findIndex(account => account.id === withdraw.accountId);
-        data.accounts[accountIndex].balance -= withdraw.value;
+        
+        let balance = data.accounts[accountIndex].balance;
+        if (balance > withdraw.value) {
+            balance -= withdraw.value;
+        } else {
+            res.status(400).send({ error: 'Insufficient funds'})
+        }
+
+        data.accounts[accountIndex].balance = balance;
         await writeFile(global.fileName, JSON.stringify(data));
-    
+
         res.end();
     } catch (err) {
         res.status(400).send({ error: err.message });
